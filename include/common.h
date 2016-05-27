@@ -5,7 +5,8 @@
 #include <stdint.h>
 #include <cmath>
 #include <limits>
-#include <SpatialIndex.h>
+//#include <SpatialIndex.h>
+#include "spatialindex/SpatialIndex.h"
 #include "visitor.h"       // for using rtree to find nearest neighbor
 #include "catch.h"         // catch runing time
 
@@ -146,13 +147,16 @@ vector <Point> readPoints(ifstream& fin, const uint32_t dimension)
 	vector <Point> pset;
 
 	double pdata[dimension];
+    uint32_t id = 1;
 	while(fin)
 	{
 		for(uint32_t i = 0; i < dimension; i++)
 			fin >> pdata[i];
 		if(! fin.good()) continue;
 		Point vp(pdata, dimension);
+        vp.m_id = id;
 		pset.push_back(vp);
+        id++;
 	}
 	return pset;
 }
@@ -309,6 +313,26 @@ vector<Point> knn(ISpatialIndex* tree, const Point &q, uint32_t k)
     tree->nearestNeighborQuery(k,q,knnvis);
     cout << "indexIO: " << knnvis.m_indexIO << "; leafIO: " << knnvis.m_leafIO << endl;
     return knnvis.m_kNNs;
+}
+
+vector<Point> mrnn(ISpatialIndex* tree, const Point &q, uint32_t k)
+{
+    vector<Point> result;
+    auto kn = knn(tree,q,k);
+    for(auto nn : kn){
+        auto t_knn = knn(tree,nn,k);
+        int counter = 0;
+        for(auto tk : t_knn){
+            if(tk == q){
+                result.push_back(nn);
+                /*counter++;
+                if(counter == 2){
+                    result.push_back(nn);
+                    }*/
+            }
+        }
+    }
+    return result;
 }
 
 /*

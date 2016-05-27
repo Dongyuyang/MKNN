@@ -1,6 +1,7 @@
 #pragma once
 
-#include <SpatialIndex.h>
+//#include <SpatialIndex.h>
+#include "spatialindex/SpatialIndex.h"
 using namespace SpatialIndex;
 using namespace std;
 
