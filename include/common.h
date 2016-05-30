@@ -325,10 +325,6 @@ vector<Point> mrnn(ISpatialIndex* tree, const Point &q, uint32_t k)
         for(auto tk : t_knn){
             if(tk == q){
                 result.push_back(nn);
-                /*counter++;
-                if(counter == 2){
-                    result.push_back(nn);
-                    }*/
             }
         }
     }

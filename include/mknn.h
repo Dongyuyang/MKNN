@@ -5,7 +5,8 @@
 class MyQueryStrategy : public SpatialIndex::IQueryStrategy
 {
  public:
-    MyQueryStrategy(const Point q, uint32_t k)
+    MyQueryStrategy(const Point query, uint32_t k_num)
+        :q(query), k(k_num),best_dist(numeric_limits<double>::max()),indexIO(0),leafIO(0)
     {}
 
     void getNextEntry(const IEntry &entry, id_type &nextEntry, bool &hasNext)
@@ -17,14 +18,34 @@ class MyQueryStrategy : public SpatialIndex::IQueryStrategy
             indexIO++;
             // for each child
             for(uint32_t n_child = 0; n_child < node->getChildrenCount(); n_child++){
-                m_queue.push(new NNEntry(node->getChildIdentifier(n_child),0));
+                IShape *shape;
+                node->getChildShape(n_child, &shape);
+                const Region *mbr = dynamic_cast<const Region *>(shape);
+                if(mbr != NULL){
+                    double distance = mbr->getMinimumDistance(q);
+                    if(distance < best_dist)
+                        m_queue.push(new NNEntry(node->getChildIdentifier(n_child),distance));
+                }
+                delete shape;
             }
         }
         //leaf node
         else{
             leafIO++;
             for(uint32_t n_child = 0; n_child < node->getChildrenCount(); n_child++){
-
+                IShape *shape;
+                node->getChildShape(n_child, &shape);
+                const Region *mbr = dynamic_cast<const Region *>(shape);
+                if(mbr != NULL){
+                    Point p = Point(mbr->m_pLow, mbr->m_dimension);
+                    double distance = q.getMinimumDistance(p);
+                    if(distance < best_dist){
+                        best_NN = p;
+                        best_dist = distance;
+                        best_NN_id = node->getIdentifier();
+                    }
+                }
+                delete shape;
             }
         }
 
@@ -34,6 +55,9 @@ class MyQueryStrategy : public SpatialIndex::IQueryStrategy
             m_queue.pop();
             nextEntry = top->m_id;
             hasNext = true;
+            double dist = top->m_minDist;
+            if(dist >= best_dist)
+                hasNext = false;
         }else{
             hasNext = false;
         }
@@ -47,4 +71,9 @@ class MyQueryStrategy : public SpatialIndex::IQueryStrategy
  public:
     uint32_t indexIO;
     uint32_t leafIO;
+    Point q;
+    uint32_t k;
+    double best_dist;
+    Point best_NN;
+    id_type best_NN_id;
 };

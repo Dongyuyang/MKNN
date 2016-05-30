@@ -52,7 +52,8 @@ class MyVisitor:public IVisitor
 public:
 	uint32_t m_indexIO;
 	uint32_t m_leafIO;
-	vector <Point> m_kNNs;  
+	vector <Point> m_kNNs;
+    vector <id_type> m_ids;
 
 public:
 	MyVisitor() : m_indexIO(0), m_leafIO(0) {}
@@ -68,6 +69,7 @@ public:
 		const Point *p = dynamic_cast<const Point *>(pS);
 		if(p != NULL){
 			m_kNNs.push_back(*p);
+            m_ids.push_back(d.getIdentifier());
 		}
 		else{
 			const Region *pr = dynamic_cast<const Region *>(pS);
@@ -76,8 +78,9 @@ public:
 	 			//double * pCoords = pr->m_pLow;
 	 			Point p2(pr->m_pLow, pr->m_dimension);
 		 		m_kNNs.push_back(p2);
+                m_ids.push_back(d.getIdentifier());
 			}
-		}	
+		}
 		delete pS;
 	}
 
