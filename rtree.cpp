@@ -9,6 +9,7 @@ int main(int argc, char* argv[])
 
     /*input params*/
     int k = atoi(argv[1]);
+    int param = /*atoi(argv[2])*/5;
 
     /*Init Rtree*/
     IStorageManager *memfile = StorageManager::createNewMemoryStorageManager();
@@ -35,16 +36,24 @@ int main(int argc, char* argv[])
     /*run*/
     CATCH cost;
     cost.catch_time();
-    auto q = P[20];
+    auto q = P[param];
     MyQueryStrategy qs(q,5);
     tree->queryStrategy(qs);
     cout << "MY: leafIO = " << qs.leafIO << "; indexIO = " << qs.leafIO << endl;
     cost.catch_time();
 
-    cout << "my nn id: " << qs.best_NN_id << endl;
-    displayCoordinates(qs.best_NN);
-    auto r_id = nearestNeighbor(tree, q);
-    cout << "r_id: " << r_id << endl;
+    cout << "my knn:" << endl;
+    displayPset(qs.best_KNN);
+    cout << endl;
+
+    CATCH co;
+    co.catch_time();
+    auto knn_r = knn(tree, q, k);
+    co.catch_time();
+    cout << "knn: " << endl;
+    displayPset(knn_r);
+    cout << endl;
+
 
     //CATCH costb;
     // costb.catch_time();
@@ -54,7 +63,8 @@ int main(int argc, char* argv[])
 
     cout << "N: " << P.size() << endl;
     cout << "Q:"; displayCoordinates(q); cout << endl;
-    cout << "cpu cost is " << cost.get_cost(2) << " millisecond(s)" << endl;
+    cout << "my cpu cost is " << cost.get_cost(2) << " millisecond(s)" << endl;
+    cout << "cpu cost is " << co.get_cost(2) << " millisecond(s)" << endl;
     //cout << "mrnn cost is " << costb.get_cost(2) << " millisecond(s)" << endl;
 
     /*release*/

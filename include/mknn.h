@@ -6,7 +6,8 @@ class MyQueryStrategy : public SpatialIndex::IQueryStrategy
 {
  public:
     MyQueryStrategy(const Point query, uint32_t k_num)
-        :q(query), k(k_num),best_dist(numeric_limits<double>::max()),indexIO(0),leafIO(0)
+        :q(query), k(k_num),best_dist(numeric_limits<double>::max()),
+        indexIO(0),leafIO(0), counter(0)
     {}
 
     void getNextEntry(const IEntry &entry, id_type &nextEntry, bool &hasNext)
@@ -42,7 +43,6 @@ class MyQueryStrategy : public SpatialIndex::IQueryStrategy
                     if(distance < best_dist){
                         best_NN = p;
                         best_dist = distance;
-                        best_NN_id = node->getIdentifier();
                     }
                 }
                 delete shape;
@@ -56,8 +56,14 @@ class MyQueryStrategy : public SpatialIndex::IQueryStrategy
             nextEntry = top->m_id;
             hasNext = true;
             double dist = top->m_minDist;
-            if(dist >= best_dist)
-                hasNext = false;
+            if(dist >= best_dist){
+                counter++;
+                best_KNN.push_back(best_NN);
+                //best_dist = numeric_limits<double>::max();
+                best_dist = top->m_minDist;
+                if(counter == k)
+                    hasNext = false;
+            }
         }else{
             hasNext = false;
         }
@@ -75,5 +81,9 @@ class MyQueryStrategy : public SpatialIndex::IQueryStrategy
     uint32_t k;
     double best_dist;
     Point best_NN;
+    vector<Point> best_KNN;
     id_type best_NN_id;
+    uint32_t counter;
+    vector<double> candidates;
+
 };
